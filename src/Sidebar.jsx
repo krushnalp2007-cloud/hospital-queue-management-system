@@ -48,16 +48,6 @@ function Sidebar({
         </button>
 
         <button
-          className="nav-item"
-          onClick={() =>
-            onNavigate("patients")
-          }
-        >
-          <span>♙</span>
-          Patients
-        </button>
-
-        <button
           className={`nav-item ${
             activePage === "doctors"
               ? "active"
@@ -97,16 +87,6 @@ function Sidebar({
         >
           <span>🚨</span>
           Emergency
-        </button>
-
-        <button
-          className="nav-item"
-          onClick={() =>
-            onNavigate("settings")
-          }
-        >
-          <span>⚙</span>
-          Settings
         </button>
       </nav>
 
