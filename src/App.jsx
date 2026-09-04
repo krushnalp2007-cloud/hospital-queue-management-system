@@ -1,126 +1,186 @@
 import { useState } from "react";
 import "./App.css";
 import QueueManagement from "./QueueManagement";
+import Doctors from "./Doctors";
+import Appointments from "./Appointments";
+import EmergencyHandling from "./EmergencyHandling";
+import Sidebar from "./Sidebar";
 import initialPatients from "./data/patients";
 
-
-
 function App() {
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePage] =
+    useState("dashboard");
 
-  const [patients] = useState(initialPatients);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [completedPatients, setCompletedPatients] = useState(28);
+  const [patients] =
+    useState(initialPatients);
 
-  const currentPatient = patients[currentIndex];
+  const [currentIndex, setCurrentIndex] =
+    useState(0);
 
-  const upcomingPatients = patients.slice(currentIndex + 1);
+  const [completedTokens, setCompletedTokens] =
+    useState(new Set());
 
-  const waitingPatients = upcomingPatients.length;
+  const initialCompletedCount = 28;
+
+  const currentPatient =
+    patients[currentIndex];
+
+  const waitingPatientsList =
+    patients.filter(
+      (patient, index) =>
+        index !== currentIndex &&
+        !completedTokens.has(patient.token)
+    );
+
+  const waitingPatients =
+    waitingPatientsList.length;
+
+  const navigate = (page) => {
+    if (page === "patients") {
+      return;
+    }
+
+    if (page === "settings") {
+      return;
+    }
+
+    setActivePage(page);
+  };
 
   const handleNextPatient = () => {
-    if (currentIndex < patients.length - 1) {
-      setCurrentIndex((index) => index + 1);
-      setCompletedPatients((count) => count + 1);
+    const nextPatientIndex =
+      patients.findIndex(
+        (patient, index) =>
+          index !== currentIndex &&
+          !completedTokens.has(patient.token)
+      );
+
+    if (nextPatientIndex !== -1) {
+      setCurrentIndex(nextPatientIndex);
+    }
+  };
+
+  const handleCallPatient = (
+    patientIndex
+  ) => {
+    if (
+      patientIndex >= 0 &&
+      patientIndex < patients.length &&
+      !completedTokens.has(
+        patients[patientIndex].token
+      )
+    ) {
+      setCurrentIndex(patientIndex);
     }
   };
 
   const handleComplete = () => {
-    if (currentIndex < patients.length - 1) {
-      setCompletedPatients((count) => count + 1);
-      setCurrentIndex((index) => index + 1);
+    if (!currentPatient) {
+      return;
+    }
+
+    const completedToken =
+      currentPatient.token;
+
+    setCompletedTokens(
+      (previousTokens) => {
+        const updatedTokens =
+          new Set(previousTokens);
+
+        updatedTokens.add(
+          completedToken
+        );
+
+        return updatedTokens;
+      }
+    );
+
+    const nextPatientIndex =
+      patients.findIndex(
+        (patient, index) =>
+          index !== currentIndex &&
+          !completedTokens.has(
+            patient.token
+          )
+      );
+
+    if (nextPatientIndex !== -1) {
+      setCurrentIndex(nextPatientIndex);
     }
   };
 
-  /*
-   * Show Queue Management page
-   */
+  const completedPatients =
+    initialCompletedCount +
+    completedTokens.size;
 
+  const upcomingPatients =
+    waitingPatientsList.slice(0, 4);
+
+  if (!currentPatient) {
+    return (
+      <div className="app">
+        <div className="empty-queue">
+          No patient data available.
+        </div>
+      </div>
+    );
+  }
+
+  /* QUEUE */
   if (activePage === "queue") {
     return (
       <QueueManagement
         patients={patients}
         currentIndex={currentIndex}
+        completedTokens={completedTokens}
         onNext={handleNextPatient}
         onComplete={handleComplete}
-        onBack={() => setActivePage("dashboard")}
+        onCallPatient={handleCallPatient}
+        activePage="queue"
+        onNavigate={navigate}
       />
     );
   }
 
-  /*
-   * Dashboard
-   */
+  /* DOCTORS */
+  if (activePage === "doctors") {
+    return (
+      <Doctors
+        activePage="doctors"
+        onNavigate={navigate}
+      />
+    );
+  }
 
+  /* APPOINTMENTS */
+  if (activePage === "appointments") {
+    return (
+      <Appointments
+        activePage="appointments"
+        onNavigate={navigate}
+      />
+    );
+  }
+
+  /* EMERGENCY */
+  if (activePage === "emergency") {
+    return (
+      <EmergencyHandling
+        activePage="emergency"
+        onNavigate={navigate}
+      />
+    );
+  }
+
+  /* DASHBOARD */
   return (
     <div className="app">
-      {/* ================= SIDEBAR ================= */}
-
-      <aside className="sidebar">
-        <div className="logo">
-          <div className="logo-icon">+</div>
-
-          <div>
-            <h2>MediQueue</h2>
-            <span>Hospital System</span>
-          </div>
-        </div>
-
-        <nav className="navigation">
-          <button
-            className="nav-item active"
-            onClick={() => setActivePage("dashboard")}
-          >
-            <span>▦</span>
-            Dashboard
-          </button>
-
-          <button
-            className="nav-item"
-            onClick={() => setActivePage("queue")}
-          >
-            <span>☷</span>
-            Queue Management
-          </button>
-
-          <button className="nav-item">
-            <span>♙</span>
-            Patients
-          </button>
-
-          <button className="nav-item">
-            <span>⚕</span>
-            Doctors
-          </button>
-
-          <button className="nav-item">
-            <span>◷</span>
-            Appointments
-          </button>
-
-          <button className="nav-item">
-            <span>⚙</span>
-            Settings
-          </button>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="system-status">
-            <span className="status-dot"></span>
-            System Online
-          </div>
-
-          <button className="logout-button">
-            ⇥ Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* ================= MAIN CONTENT ================= */}
+      <Sidebar
+        activePage="dashboard"
+        onNavigate={navigate}
+      />
 
       <main className="main-content">
-        {/* ================= HEADER ================= */}
-
         <header className="topbar">
           <div>
             <p className="welcome-text">
@@ -153,8 +213,6 @@ function App() {
           </div>
         </header>
 
-        {/* ================= STATISTICS ================= */}
-
         <section className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon blue">
@@ -162,12 +220,10 @@ function App() {
             </div>
 
             <div>
-              <p>
-                Total Patients
-              </p>
+              <p>Total Patients</p>
 
               <h2>
-                42
+                {patients.length}
               </h2>
 
               <span className="positive">
@@ -182,9 +238,7 @@ function App() {
             </div>
 
             <div>
-              <p>
-                Waiting
-              </p>
+              <p>Waiting</p>
 
               <h2>
                 {waitingPatients}
@@ -202,9 +256,7 @@ function App() {
             </div>
 
             <div>
-              <p>
-                Completed
-              </p>
+              <p>Completed</p>
 
               <h2>
                 {completedPatients}
@@ -222,9 +274,7 @@ function App() {
             </div>
 
             <div>
-              <p>
-                Avg. Wait Time
-              </p>
+              <p>Avg. Wait Time</p>
 
               <h2>
                 18 min
@@ -237,11 +287,7 @@ function App() {
           </div>
         </section>
 
-        {/* ================= DASHBOARD ================= */}
-
         <section className="dashboard-grid">
-          {/* CURRENT PATIENT */}
-
           <div className="card current-card">
             <div className="card-header">
               <div>
@@ -260,9 +306,7 @@ function App() {
             </div>
 
             <div className="token-display">
-              <span>
-                Token
-              </span>
+              <span>Token</span>
 
               <strong>
                 #{currentPatient.token}
@@ -295,9 +339,11 @@ function App() {
             <div className="action-buttons">
               <button
                 className="primary-button"
-                onClick={handleNextPatient}
+                onClick={
+                  handleNextPatient
+                }
                 disabled={
-                  currentIndex >= patients.length - 1
+                  waitingPatients === 0
                 }
               >
                 Call Next Patient →
@@ -306,16 +352,11 @@ function App() {
               <button
                 className="secondary-button"
                 onClick={handleComplete}
-                disabled={
-                  currentIndex >= patients.length - 1
-                }
               >
                 ✓ Mark Completed
               </button>
             </div>
           </div>
-
-          {/* UPCOMING QUEUE */}
 
           <div className="card queue-card">
             <div className="card-header">
@@ -331,38 +372,43 @@ function App() {
 
               <button
                 className="view-all"
-                onClick={() => setActivePage("queue")}
+                onClick={() =>
+                  navigate("queue")
+                }
               >
                 View All →
               </button>
             </div>
 
             <div className="queue-list">
-              {upcomingPatients.length > 0 ? (
-                upcomingPatients.map((patient) => (
-                  <div
-                    className="queue-row"
-                    key={patient.token}
-                  >
-                    <span className="queue-token">
-                      #{patient.token}
-                    </span>
+              {upcomingPatients.length >
+              0 ? (
+                upcomingPatients.map(
+                  (patient) => (
+                    <div
+                      className="queue-row"
+                      key={patient.token}
+                    >
+                      <span className="queue-token">
+                        #{patient.token}
+                      </span>
 
-                    <div className="queue-patient">
-                      <strong>
-                        {patient.name}
-                      </strong>
+                      <div className="queue-patient">
+                        <strong>
+                          {patient.name}
+                        </strong>
 
-                      <span>
-                        {patient.department}
+                        <span>
+                          {patient.department}
+                        </span>
+                      </div>
+
+                      <span className="waiting-badge">
+                        Waiting
                       </span>
                     </div>
-
-                    <span className="waiting-badge">
-                      Waiting
-                    </span>
-                  </div>
-                ))
+                  )
+                )
               ) : (
                 <div className="empty-queue">
                   No patients waiting
@@ -372,11 +418,7 @@ function App() {
           </div>
         </section>
 
-        {/* ================= BOTTOM SECTION ================= */}
-
         <section className="bottom-grid">
-          {/* DEPARTMENTS */}
-
           <div className="card">
             <div className="card-header">
               <div>
@@ -423,8 +465,6 @@ function App() {
             </div>
           </div>
 
-          {/* QUICK ACTION */}
-
           <div className="card quick-card">
             <p className="section-label">
               QUICK ACTION
@@ -435,13 +475,15 @@ function App() {
             </h2>
 
             <p>
-              Quickly control patient flow from the
-              reception desk.
+              Quickly control patient flow
+              from the reception desk.
             </p>
 
             <button
               className="primary-button"
-              onClick={() => setActivePage("queue")}
+              onClick={() =>
+                navigate("queue")
+              }
             >
               Open Queue Management →
             </button>
