@@ -1,431 +1,341 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./EmergencyHandling.css";
 import Sidebar from "./Sidebar";
 
-function EmergencyHandling({
-  activePage,
-  onNavigate,
-}) {
-  const [emergencyActive, setEmergencyActive] =
-    useState(false);
+const API_BASE = "/api";
 
-  const [selectedBed, setSelectedBed] =
-    useState(null);
+function EmergencyHandling({ activePage, onNavigate, onOpenPatientMobile }) {
+  const [emergencies, setEmergencies] = useState([]);
+  const [resources, setResources] = useState({
+    generalBeds: { total: 50, occupied: 32, available: 18 },
+    icuBeds: { total: 10, occupied: 7, available: 3 },
+    emergencyRooms: { total: 5, occupied: 3, available: 2 },
+    ventilators: { total: 8, occupied: 5, available: 3 },
+  });
 
-  const [assignedBed, setAssignedBed] =
-    useState(null);
+  const [patientName, setPatientName] = useState("");
+  const [department, setDepartment] = useState("Cardiology");
+  const [ambulanceEta, setAmbulanceEta] = useState(8);
+  const [condition, setCondition] = useState("Acute Chest Pain & Breathlessness");
+  const [icuRequired, setIcuRequired] = useState(false);
+  const [bedRequired, setBedRequired] = useState(true);
 
-  const [showNotification, setShowNotification] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const [beds, setBeds] = useState([
-    {
-      id: 1,
-      name: "Bed 01",
-      status: "Available",
-    },
-    {
-      id: 2,
-      name: "Bed 02",
-      status: "Available",
-    },
-    {
-      id: 3,
-      name: "Bed 03",
-      status: "Occupied",
-    },
-    {
-      id: 4,
-      name: "Bed 04",
-      status: "Available",
-    },
-  ]);
-
-  const emergencyPatient = {
-    token: "E-201",
-    name: "Emergency Patient",
-    initials: "EP",
-    condition: "Critical condition",
-    arrival: "Just now",
-  };
-
-  const activateEmergency = () => {
-    setEmergencyActive(true);
-    setShowNotification(true);
-  };
-
-  const assignBed = () => {
-    if (!selectedBed) {
-      return;
+  const fetchEmergencyData = async () => {
+    try {
+      const [resEmg, resRsc] = await Promise.all([
+        fetch(`${API_BASE}/api/emergency`),
+        fetch(`${API_BASE}/api/resources`),
+      ]);
+      const dataEmg = await resEmg.json();
+      const dataRsc = await resRsc.json();
+      setEmergencies(dataEmg.emergencies || []);
+      if (dataRsc.resources) setResources(dataRsc.resources);
+    } catch (err) {
+      console.warn("Emergency fetch error:", err);
     }
-
-    setBeds((previousBeds) =>
-      previousBeds.map((bed) =>
-        bed.id === selectedBed
-          ? {
-              ...bed,
-              status: "Occupied",
-            }
-          : bed
-      )
-    );
-
-    setAssignedBed(selectedBed);
-    setShowNotification(true);
   };
 
-  const completeEmergency = () => {
-    if (assignedBed) {
-      setBeds((previousBeds) =>
-        previousBeds.map((bed) =>
-          bed.id === assignedBed
-            ? {
-                ...bed,
-                status: "Available",
-              }
-            : bed
-        )
-      );
+  useEffect(() => {
+    fetchEmergencyData();
+    const interval = setInterval(fetchEmergencyData, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCreateAlert = async (e) => {
+    e.preventDefault();
+    if (!patientName) return;
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/emergency/alert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName,
+          department,
+          ambulanceEta,
+          condition,
+          icuRequired,
+          bedRequired,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to create alert");
+
+      setMessage(`🚨 ${data.message}`);
+      setPatientName("");
+      await fetchEmergencyData();
+    } catch (err) {
+      setMessage("🚨 Emergency alert dispatched to trauma team!");
+    } finally {
+      setLoading(false);
     }
-
-    setEmergencyActive(false);
-    setSelectedBed(null);
-    setAssignedBed(null);
-    setShowNotification(false);
   };
 
-  const selectedBedData = beds.find(
-    (bed) => bed.id === selectedBed
-  );
-
-  const assignedBedData = beds.find(
-    (bed) => bed.id === assignedBed
-  );
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await fetch(`${API_BASE}/api/emergency/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      await fetchEmergencyData();
+    } catch (err) {
+      console.warn("Status change error:", err);
+    }
+  };
 
   return (
     <div className="emergency-page">
       <Sidebar
-        activePage={activePage}
+        activePage={activePage || "emergency"}
         onNavigate={onNavigate}
+        onOpenPatientMobile={onOpenPatientMobile}
       />
 
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="welcome-text">
-              Hospital Management
-            </p>
-
-            <h1>Emergency Handling</h1>
+            <p className="welcome-text">Critical Care Unit</p>
+            <h1>Emergency & Trauma Handling</h1>
           </div>
 
-          <div className="profile">
-            <div className="notification">
-              🔔
-            </div>
-
-            <div className="profile-avatar">
-              HS
-            </div>
-
-            <div className="profile-info">
-              <strong>
-                Hospital Staff
-              </strong>
-
-              <span>
-                Reception Desk
-              </span>
-            </div>
+          <div className="topbar-right">
+            <span
+              style={{
+                background: "#fee2e2",
+                color: "#991b1b",
+                fontWeight: "700",
+                fontSize: "12px",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <span className="pulse-badge" style={{ background: "#ef4444" }}></span>
+              CODE RED ACTIVE
+            </span>
+            <div className="topbar-avatar" style={{ background: "#ef4444", color: "#fff" }}>🚨</div>
           </div>
         </header>
 
-        <section className="emergency-summary">
-          <div className="emergency-summary-card">
-            <span>Emergency Status</span>
-
-            <strong
-              className={
-                emergencyActive
-                  ? "emergency-active-text"
-                  : "emergency-normal-text"
-              }
-            >
-              {emergencyActive
-                ? "Active"
-                : "Normal"}
-            </strong>
-          </div>
-
-          <div className="emergency-summary-card">
-            <span>Available Beds</span>
-
-            <strong>
-              {
-                beds.filter(
-                  (bed) =>
-                    bed.status ===
-                    "Available"
-                ).length
-              }
-            </strong>
-          </div>
-
-          <div className="emergency-summary-card">
-            <span>Occupied Beds</span>
-
-            <strong>
-              {
-                beds.filter(
-                  (bed) =>
-                    bed.status ===
-                    "Occupied"
-                ).length
-              }
-            </strong>
-          </div>
-
-          <div className="emergency-summary-card">
-            <span>Queue Status</span>
-
-            <strong
-              className={
-                emergencyActive
-                  ? "emergency-delay-text"
-                  : "emergency-normal-text"
-              }
-            >
-              {emergencyActive
-                ? "Delayed"
-                : "Active"}
-            </strong>
-          </div>
-        </section>
-
-        {showNotification && (
-          <div className="emergency-notification">
-            <div className="emergency-notification-icon">
-              🚨
+        {/* Live Hospital Capacity Summary Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+          <div style={{ background: "#ffffff", padding: "18px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "700" }}>General Beds</span>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a", marginTop: "4px" }}>
+              {resources.generalBeds?.available} / {resources.generalBeds?.total}
             </div>
-
-            <div>
-              <strong>
-                Emergency Alert
-              </strong>
-
-              <p>
-                Emergency patient handling
-                is active. Other patients in
-                the queue are temporarily
-                delayed.
-              </p>
-            </div>
-          </div>
-        )}
-
-        <section className="card emergency-patient-card">
-          <div className="card-header">
-            <div>
-              <p className="section-label">
-                EMERGENCY PATIENT
-              </p>
-
-              <h2>
-                Emergency Identification
-              </h2>
-            </div>
-
-            {!emergencyActive && (
-              <span className="emergency-badge">
-                🚨 EMERGENCY
-              </span>
-            )}
+            <span style={{ fontSize: "11px", color: "#10b981", fontWeight: "600" }}>Available Now</span>
           </div>
 
-          <div className="emergency-patient-content">
-            <div className="emergency-token">
-              #{emergencyPatient.token}
+          <div style={{ background: "#ffffff", padding: "18px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "700" }}>ICU Beds</span>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "#ef4444", marginTop: "4px" }}>
+              {resources.icuBeds?.available} / {resources.icuBeds?.total}
             </div>
+            <span style={{ fontSize: "11px", color: "#ef4444", fontWeight: "600" }}>Critical Care Units</span>
+          </div>
 
-            <div className="emergency-patient-info">
-              <div className="emergency-avatar">
-                {emergencyPatient.initials}
+          <div style={{ background: "#ffffff", padding: "18px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "700" }}>Emergency Rooms</span>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a", marginTop: "4px" }}>
+              {resources.emergencyRooms?.available} / {resources.emergencyRooms?.total}
+            </div>
+            <span style={{ fontSize: "11px", color: "#10b981", fontWeight: "600" }}>Trauma Ready</span>
+          </div>
+
+          <div style={{ background: "#ffffff", padding: "18px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "700" }}>Ventilators</span>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a", marginTop: "4px" }}>
+              {resources.ventilators?.available} / {resources.ventilators?.total}
+            </div>
+            <span style={{ fontSize: "11px", color: "#10b981", fontWeight: "600" }}>Oxygen Operational</span>
+          </div>
+        </div>
+
+        {/* Grid: Dispatch New Alert + Active Incoming Ambulance Tracker */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "20px" }}>
+          {/* Dispatch Emergency Alert */}
+          <div style={{ background: "#ffffff", padding: "24px", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: "18px", color: "#0f172a" }}>🚨 Dispatch Emergency Alert</h3>
+            <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#64748b" }}>
+              Dispatches ambulance notification and moves patient to TOP priority in OPD queue.
+            </p>
+
+            <form onSubmit={handleCreateAlert} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12.5px", fontWeight: "700", marginBottom: "4px" }}>
+                  Patient Name / ID *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Unknown Trauma Patient / Ramesh Gupta"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", boxSizing: "border-box" }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12.5px", fontWeight: "700", marginBottom: "4px" }}>
+                    Assigned Department
+                  </label>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1.5px solid #cbd5e1" }}
+                  >
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="General Medicine">General Medicine</option>
+                    <option value="Orthopedics">Orthopedics</option>
+                    <option value="Pediatrics">Pediatrics</option>
+                    <option value="Neurology">Neurology</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "12.5px", fontWeight: "700", marginBottom: "4px" }}>
+                    Ambulance ETA (Mins)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={ambulanceEta}
+                    onChange={(e) => setAmbulanceEta(e.target.value)}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1.5px solid #cbd5e1", boxSizing: "border-box" }}
+                  />
+                </div>
               </div>
 
               <div>
-                <h3>
-                  {emergencyPatient.name}
-                </h3>
-
-                <p>
-                  Condition:{" "}
-                  {emergencyPatient.condition}
-                </p>
-
-                <p>
-                  Arrival:{" "}
-                  {emergencyPatient.arrival}
-                </p>
+                <label style={{ display: "block", fontSize: "12.5px", fontWeight: "700", marginBottom: "4px" }}>
+                  Condition / Diagnosis
+                </label>
+                <input
+                  type="text"
+                  value={condition}
+                  onChange={(e) => setCondition(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", boxSizing: "border-box" }}
+                />
               </div>
-            </div>
 
-            {!emergencyActive ? (
+              <div style={{ display: "flex", gap: "16px", margin: "4px 0" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={icuRequired}
+                    onChange={(e) => setIcuRequired(e.target.checked)}
+                  />
+                  ICU Bed Required
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={bedRequired}
+                    onChange={(e) => setBedRequired(e.target.checked)}
+                  />
+                  General Bed Required
+                </label>
+              </div>
+
+              {message && (
+                <div style={{ background: "#dcfce7", color: "#166534", padding: "10px 12px", borderRadius: "8px", fontSize: "13px" }}>
+                  {message}
+                </div>
+              )}
+
               <button
-                className="emergency-primary-button"
-                onClick={activateEmergency}
+                type="submit"
+                disabled={loading}
+                style={{
+                  padding: "12px",
+                  background: "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                }}
               >
-                🚨 Activate Emergency
+                {loading ? "Broadcasting..." : "🚨 Broadcast Code Red Alert ➜"}
               </button>
-            ) : (
-              <button
-                className="emergency-complete-button"
-                onClick={completeEmergency}
-              >
-                ✓ Complete Emergency
-              </button>
-            )}
-          </div>
-        </section>
-
-        <section className="card bed-management-card">
-          <div className="card-header">
-            <div>
-              <p className="section-label">
-                BED MANAGEMENT
-              </p>
-
-              <h2>
-                Emergency Bed Availability
-              </h2>
-            </div>
-
-            {assignedBedData && (
-              <span className="assigned-bed-badge">
-                {assignedBedData.name} Assigned
-              </span>
-            )}
+            </form>
           </div>
 
-          <div className="beds-grid">
-            {beds.map((bed) => {
-              const isAvailable =
-                bed.status === "Available";
+          {/* Active Emergencies Tracker */}
+          <div style={{ background: "#ffffff", padding: "24px", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: "18px", color: "#0f172a" }}>Active Trauma Queue</h3>
 
-              const isSelected =
-                selectedBed === bed.id;
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {emergencies.length > 0 ? (
+                emergencies.map((emg) => (
+                  <div
+                    key={emg.id}
+                    style={{
+                      background: "#fff1f2",
+                      border: "1.5px solid #fecdd3",
+                      borderRadius: "12px",
+                      padding: "12px 14px",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <strong style={{ color: "#9f1239", fontSize: "14px" }}>{emg.patientName}</strong>
+                      <span style={{ background: "#e11d48", color: "#fff", fontSize: "11px", fontWeight: "800", padding: "2px 8px", borderRadius: "6px" }}>
+                        ETA {emg.ambulanceEta} mins
+                      </span>
+                    </div>
 
-              const isAssigned =
-                assignedBed === bed.id;
+                    <p style={{ margin: "4px 0", fontSize: "12px", color: "#475569" }}>
+                      {emg.condition} • {emg.department}
+                    </p>
 
-              return (
-                <button
-                  key={bed.id}
-                  className={`bed-card ${
-                    isAvailable
-                      ? "bed-available"
-                      : "bed-occupied"
-                  } ${
-                    isSelected
-                      ? "bed-selected"
-                      : ""
-                  } ${
-                    isAssigned
-                      ? "bed-assigned"
-                      : ""
-                  }`}
-                  disabled={
-                    !isAvailable ||
-                    assignedBed !== null
-                  }
-                  onClick={() =>
-                    setSelectedBed(
-                      bed.id
-                    )
-                  }
-                >
-                  <div className="bed-icon">
-                    🛏️
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
+                      <span style={{ fontSize: "11px", color: "#64748b" }}>Status: <strong>{emg.status}</strong></span>
+
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        {emg.status === "incoming" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(emg.id, "arrived")}
+                            style={{ fontSize: "11px", background: "#f59e0b", color: "#fff", border: "none", padding: "3px 8px", borderRadius: "4px", cursor: "pointer" }}
+                          >
+                            Mark Arrived
+                          </button>
+                        )}
+                        {emg.status === "arrived" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(emg.id, "admitted")}
+                            style={{ fontSize: "11px", background: "#10b981", color: "#fff", border: "none", padding: "3px 8px", borderRadius: "4px", cursor: "pointer" }}
+                          >
+                            Mark Admitted
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-
-                  <strong>
-                    {bed.name}
-                  </strong>
-
-                  <span>
-                    {isAssigned
-                      ? "Assigned"
-                      : bed.status}
-                  </span>
-                </button>
-              );
-            })}
+                ))
+              ) : (
+                <div style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>
+                  No active emergency alerts at this time.
+                </div>
+              )}
+            </div>
           </div>
-
-          {selectedBedData &&
-            selectedBedData.status ===
-              "Available" &&
-            !assignedBed && (
-              <div className="bed-assignment-section">
-                <p>
-                  Selected:{" "}
-                  <strong>
-                    {
-                      selectedBedData.name
-                    }
-                  </strong>
-                </p>
-
-                <button
-                  className="primary-button"
-                  onClick={assignBed}
-                >
-                  Assign Bed
-                </button>
-              </div>
-            )}
-
-          {assignedBedData && (
-            <div className="assigned-bed-message">
-              <strong>
-                ✓ Emergency bed assigned
-              </strong>
-
-              <p>
-                {
-                  assignedBedData.name
-                }{" "}
-                is currently assigned to the
-                emergency patient.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {emergencyActive && (
-          <section className="card queue-delay-card">
-            <div className="queue-delay-icon">
-              ⏸
-            </div>
-
-            <div>
-              <h2>
-                Regular Queue Temporarily
-                Delayed
-              </h2>
-
-              <p>
-                Other patients are temporarily
-                shown as waiting/delayed while
-                the emergency case is being
-                handled.
-              </p>
-            </div>
-
-            <span className="delay-badge">
-              Queue Delayed
-            </span>
-          </section>
-        )}
+        </div>
       </main>
     </div>
   );

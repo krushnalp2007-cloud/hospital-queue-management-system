@@ -1,330 +1,330 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./QueueManagement.css";
 import Sidebar from "./Sidebar";
 
-function QueueManagement({
-  patients,
-  currentIndex,
-  completedTokens,
-  onNext,
-  onComplete,
-  onCallPatient,
-  onNavigate,
-}) {
+const API_URL = "/api";
+
+function QueueManagement({ onNavigate, onOpenPatientMobile }) {
+  const [queue, setQueue] = useState([]);
   const [search, setSearch] = useState("");
-  const [department, setDepartment] =
-    useState("All");
+  const [department, setDepartment] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const currentPatient =
-    patients[currentIndex];
+  const fetchQueue = async () => {
+    try {
+      setError("");
+      const response = await fetch(`${API_URL}/queue`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch queue data.");
+      }
+      const data = await response.json();
+      setQueue(data.queue || []);
+    } catch (err) {
+      console.warn("Queue fetch error:", err);
+      // If error, keep existing queue
+      if (queue.length === 0) {
+        setError("Unable to connect to queue service.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const waitingPatients = patients.filter(
-    (patient, index) =>
-      index !== currentIndex &&
-      !completedTokens.has(patient.token)
-  );
+  useEffect(() => {
+    fetchQueue();
+    const interval = setInterval(fetchQueue, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const filteredPatients =
-    waitingPatients.filter((patient) => {
-      const searchValue =
-        search.toLowerCase();
+  const currentPatient = useMemo(() => {
+    return queue.find(
+      (patient) =>
+        patient.status === "called" ||
+        patient.status === "in_consultation"
+    );
+  }, [queue]);
 
-      const matchesSearch =
-        patient.name
-          .toLowerCase()
-          .includes(searchValue) ||
-        patient.token
-          .toString()
-          .includes(searchValue);
+  const waitingPatients = useMemo(() => {
+    return queue.filter((patient) => patient.status === "waiting");
+  }, [queue]);
 
-      const matchesDepartment =
-        department === "All" ||
-        patient.department === department;
+  const departments = useMemo(() => {
+    return [
+      ...new Set(
+        queue.map((patient) => patient.department).filter(Boolean)
+      ),
+    ];
+  }, [queue]);
 
-      return (
-        matchesSearch &&
-        matchesDepartment
-      );
+  const filteredPatients = useMemo(() => {
+    const searchValue = search.trim().toLowerCase();
+    return waitingPatients.filter((patient) => {
+      const name = (patient.patient_name || patient.patientName || "").toLowerCase();
+      const token = (patient.token_number || patient.tokenNumber || "").toString().toLowerCase();
+      const matchesSearch = !searchValue || name.includes(searchValue) || token.includes(searchValue);
+      const matchesDepartment = department === "All" || patient.department === department;
+      return matchesSearch && matchesDepartment;
     });
+  }, [waitingPatients, search, department]);
 
-  const departments = [
-    ...new Set(
-      patients.map(
-        (patient) => patient.department
-      )
-    ),
-  ];
+  const handleNextPatient = async () => {
+    try {
+      setActionLoading(true);
+      setError("");
+      const response = await fetch(`${API_URL}/queue/next`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to call next patient.");
+      }
+      await fetchQueue();
+    } catch (err) {
+      console.error("Next patient error:", err);
+      setError(err.message || "Failed to call next patient.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCompletePatient = async () => {
+    if (!currentPatient) return;
+    try {
+      setActionLoading(true);
+      setError("");
+      const response = await fetch(`${API_URL}/queue/${currentPatient.id}/complete`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to complete patient.");
+      }
+      await fetchQueue();
+    } catch (err) {
+      console.error("Complete patient error:", err);
+      setError(err.message || "Failed to complete patient.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const queueIsActive = queue.length > 0 && (waitingPatients.length > 0 || Boolean(currentPatient));
 
   return (
     <div className="queue-page">
       <Sidebar
         activePage="queue"
         onNavigate={onNavigate}
+        onOpenPatientMobile={onOpenPatientMobile}
       />
 
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="welcome-text">
-              Hospital Management
-            </p>
-
-            <h1>
-              Queue Management
-            </h1>
+            <p className="welcome-text">Live OPD Counter</p>
+            <h1>Queue Management</h1>
           </div>
 
-          <div className="profile">
-            <div className="notification">
-              🔔
-            </div>
-
-            <div className="profile-avatar">
-              HS
-            </div>
-
-            <div className="profile-info">
-              <strong>
-                Hospital Staff
-              </strong>
-
-              <span>
-                Reception Desk
-              </span>
-            </div>
+          <div className="topbar-right">
+            <button
+              type="button"
+              className="refresh-button"
+              onClick={fetchQueue}
+              disabled={loading}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              🔄 Refresh Queue
+            </button>
+            <div className="topbar-avatar">🏥</div>
           </div>
         </header>
 
-        <section className="queue-summary">
-          <div className="queue-summary-card">
-            <span>
-              Current Token
-            </span>
+        {error && (
+          <div style={{ background: "#fee2e2", color: "#991b1b", padding: "10px 14px", borderRadius: "10px", marginBottom: "16px" }}>
+            ⚠️ {error}
+          </div>
+        )}
 
-            <strong>
-              #{currentPatient.token}
-            </strong>
+        <section className="current-patient-card">
+          <div className="current-patient-left">
+            <span className="section-label">Currently Serving In OPD</span>
+
+            {currentPatient ? (
+              <>
+                <div className="token-display">
+                  #{currentPatient.token_number || currentPatient.tokenNumber}
+                </div>
+
+                <div className="current-patient-info">
+                  <h2>{currentPatient.patient_name || currentPatient.patientName}</h2>
+                  <p>
+                    {currentPatient.department || "General"} • {currentPatient.doctor_name || currentPatient.doctorName} (Room {currentPatient.room || "101"})
+                  </p>
+                </div>
+
+                <div className="meta-tags">
+                  <span className="tag tag-time">
+                    ⏱️ Priority: {currentPatient.priority}
+                  </span>
+                  <span className="tag tag-room">
+                    🚪 Room {currentPatient.room || "101"}
+                  </span>
+                  <span className="tag tag-department">
+                    {currentPatient.department || "Cardiology"}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: "20px 0" }}>
+                <div className="token-display" style={{ color: "#94a3b8" }}>--</div>
+                <h3>No patient currently in consultation</h3>
+                <p style={{ color: "#64748b" }}>Click "Call Next Patient" to call from the waiting line.</p>
+              </div>
+            )}
           </div>
 
-          <div className="queue-summary-card">
-            <span>
-              Waiting
-            </span>
+          <div className="current-patient-actions">
+            <button
+              className="next-button"
+              onClick={handleNextPatient}
+              disabled={actionLoading || waitingPatients.length === 0}
+            >
+              {actionLoading ? "Processing..." : "Call Next Patient ➜"}
+            </button>
 
-            <strong>
-              {waitingPatients.length}
-            </strong>
-          </div>
-
-          <div className="queue-summary-card">
-            <span>
-              Departments
-            </span>
-
-            <strong>
-              {departments.length}
-            </strong>
-          </div>
-
-          <div className="queue-summary-card">
-            <span>
-              Queue Status
-            </span>
-
-            <strong className="queue-active">
-              Active
-            </strong>
+            <button
+              className="complete-button"
+              onClick={handleCompletePatient}
+              disabled={actionLoading || !currentPatient}
+            >
+              ✓ Mark Completed
+            </button>
           </div>
         </section>
 
-        <section className="card current-queue-card">
-          <div className="card-header">
+        {/* Waiting List Table */}
+        <section className="queue-table-card">
+          <div className="queue-table-header">
             <div>
-              <p className="section-label">
-                CURRENT PATIENT
-              </p>
-
-              <h2>
-                Now Serving
-              </h2>
+              <h3>Waiting Queue ({filteredPatients.length})</h3>
+              <p>Ordered by Priority (Emergency → Priority → Normal)</p>
             </div>
 
-            <span className="live-badge">
-              ● LIVE
-            </span>
-          </div>
-
-          <div className="current-patient-content">
-            <div className="queue-token-large">
-              #{currentPatient.token}
-            </div>
-
-            <div className="current-patient-info">
-              <div className="patient-avatar">
-                {currentPatient.initials}
-              </div>
-
-              <div>
-                <h3>
-                  {currentPatient.name}
-                </h3>
-
-                <p>
-                  {currentPatient.department}
-                  {" • Room "}
-                  {currentPatient.room}
-                </p>
-              </div>
-            </div>
-
-            <div className="queue-actions">
-              <button
-                className="primary-button"
-                onClick={onNext}
-                disabled={
-                  waitingPatients.length ===
-                  0
-                }
-              >
-                Call Next Patient →
-              </button>
-
-              <button
-                className="secondary-button"
-                onClick={onComplete}
-              >
-                ✓ Mark Completed
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className="card waiting-queue-card">
-          <div className="waiting-header">
-            <div>
-              <p className="section-label">
-                QUEUE
-              </p>
-
-              <h2>
-                Waiting Patients
-              </h2>
-            </div>
-
-            <div className="queue-controls">
+            <div className="queue-table-controls">
               <input
                 type="text"
-                placeholder="Search patient..."
+                placeholder="Search patient or token..."
                 value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "13px",
+                }}
               />
 
               <select
                 value={department}
-                onChange={(event) =>
-                  setDepartment(
-                    event.target.value
-                  )
-                }
+                onChange={(e) => setDepartment(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
               >
-                <option value="All">
-                  All Departments
-                </option>
-
-                {departments.map(
-                  (item) => (
-                    <option
-                      value={item}
-                      key={item}
-                    >
-                      {item}
-                    </option>
-                  )
-                )}
+                <option value="All">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="queue-table">
-            <div className="queue-table-row queue-table-heading">
+            <div className="queue-table-heading">
               <span>Token</span>
-              <span>Patient</span>
+              <span>Patient Name</span>
               <span>Department</span>
               <span>Doctor</span>
               <span>Room</span>
-              <span>Status</span>
+              <span>Priority</span>
               <span>Action</span>
             </div>
 
-            {filteredPatients.map(
-              (patient) => {
-                const actualIndex =
-                  patients.findIndex(
-                    (item) =>
-                      item.token ===
-                      patient.token
-                  );
+            {loading ? (
+              <div style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>
+                Loading queue data...
+              </div>
+            ) : filteredPatients.length > 0 ? (
+              filteredPatients.map((patient) => (
+                <div className="queue-table-row" key={patient.id}>
+                  <span className="queue-token">
+                    #{patient.token_number || patient.tokenNumber}
+                  </span>
 
-                return (
-                  <div
-                    className="queue-table-row"
-                    key={patient.token}
-                  >
-                    <span className="queue-token">
-                      #{patient.token}
-                    </span>
-
-                    <div className="queue-patient-cell">
-                      <div className="small-avatar">
-                        {patient.initials}
-                      </div>
-
-                      <strong>
-                        {patient.name}
-                      </strong>
+                  <div className="queue-patient-cell">
+                    <div className="small-avatar">
+                      {getInitials(patient.patient_name || patient.patientName)}
                     </div>
-
-                    <span>
-                      {patient.department}
-                    </span>
-
-                    <span>
-                      {patient.doctor}
-                    </span>
-
-                    <span>
-                      {patient.room}
-                    </span>
-
-                    <span>
-                      <span className="waiting-badge">
-                        Waiting
-                      </span>
-                    </span>
-
-                    <button
-                      className="call-button"
-                      onClick={() =>
-                        onCallPatient(
-                          actualIndex
-                        )
-                      }
-                    >
-                      Call
-                    </button>
+                    <strong>{patient.patient_name || patient.patientName}</strong>
                   </div>
-                );
-              }
-            )}
 
-            {filteredPatients.length ===
-              0 && (
-              <div className="queue-empty">
-                No waiting patients found.
+                  <span>{patient.department || "General"}</span>
+                  <span>{patient.doctor_name || patient.doctorName || "Doctor"}</span>
+                  <span>{patient.room || "101"}</span>
+
+                  <span>
+                    <span
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        background:
+                          patient.priority === "emergency"
+                            ? "#fee2e2"
+                            : patient.priority === "priority"
+                            ? "#fef3c7"
+                            : "#eff6ff",
+                        color:
+                          patient.priority === "emergency"
+                            ? "#991b1b"
+                            : patient.priority === "priority"
+                            ? "#92400e"
+                            : "#1d4ed8",
+                      }}
+                    >
+                      {patient.priority}
+                    </span>
+                  </span>
+
+                  <button
+                    className="call-button"
+                    onClick={handleNextPatient}
+                    disabled={actionLoading}
+                  >
+                    Call
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>
+                No waiting patients found in this department.
               </div>
             )}
           </div>
@@ -332,6 +332,13 @@ function QueueManagement({
       </main>
     </div>
   );
+}
+
+function getInitials(name) {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 export default QueueManagement;
