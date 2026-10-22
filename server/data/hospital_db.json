@@ -1,0 +1,346 @@
+{
+  "departments": [
+    {
+      "id": 1,
+      "name": "Cardiology",
+      "description": "Heart and cardiovascular diagnosis and treatment",
+      "icon": "❤️"
+    },
+    {
+      "id": 2,
+      "name": "General Medicine",
+      "description": "Comprehensive primary healthcare and outpatient consultations",
+      "icon": "🩺"
+    },
+    {
+      "id": 3,
+      "name": "Orthopedics",
+      "description": "Musculoskeletal, joint, bone, and trauma surgery",
+      "icon": "🦴"
+    },
+    {
+      "id": 4,
+      "name": "Pediatrics",
+      "description": "Comprehensive care and treatment for infants & children",
+      "icon": "👶"
+    },
+    {
+      "id": 5,
+      "name": "Neurology",
+      "description": "Disorders of the brain, spinal cord, and nervous system",
+      "icon": "🧠"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Aarav Sharma",
+      "email": "aarav@example.com",
+      "phone": "9876543210",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "patient",
+      "created_at": "2026-10-22T14:39:32.584Z"
+    },
+    {
+      "id": 2,
+      "name": "Diya Patel",
+      "email": "diya@example.com",
+      "phone": "9876543211",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "patient",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 3,
+      "name": "Rajesh Kumar",
+      "email": "rajesh@example.com",
+      "phone": "9876543212",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "patient",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 4,
+      "name": "Sunita Verma",
+      "email": "sunita@example.com",
+      "phone": "9876543213",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "patient",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 5,
+      "name": "Dr. Amit Sharma",
+      "email": "amit.doctor@smartcare.com",
+      "phone": "9876543220",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "doctor",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 6,
+      "name": "Hospital Admin",
+      "email": "admin@smartcare.com",
+      "phone": "9876543230",
+      "password_hash": "$2a$10$w8T9H6V2n4R0v0U2O4X8UeP3S2b6g6r8q9s0t1u2v3w4x5y6z7a8b",
+      "role": "hospital_staff",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    }
+  ],
+  "doctors": [
+    {
+      "id": 1,
+      "user_id": 5,
+      "name": "Dr. Amit Sharma",
+      "department_id": 1,
+      "department": "Cardiology",
+      "specialization": "Senior Cardiologist",
+      "room": "101",
+      "status": "Available",
+      "experience_years": 14,
+      "rating": "4.9"
+    },
+    {
+      "id": 2,
+      "user_id": null,
+      "name": "Dr. Priya Deshmukh",
+      "department_id": 2,
+      "department": "General Medicine",
+      "specialization": "Chief General Physician",
+      "room": "102",
+      "status": "Available",
+      "experience_years": 11,
+      "rating": "4.8"
+    },
+    {
+      "id": 3,
+      "user_id": null,
+      "name": "Dr. Rajesh Patel",
+      "department_id": 3,
+      "department": "Orthopedics",
+      "specialization": "Orthopedic Surgeon",
+      "room": "201",
+      "status": "Available",
+      "experience_years": 9,
+      "rating": "4.7"
+    },
+    {
+      "id": 4,
+      "user_id": null,
+      "name": "Dr. Sneha Reddy",
+      "department_id": 4,
+      "department": "Pediatrics",
+      "specialization": "Consultant Pediatrician",
+      "room": "205",
+      "status": "Busy",
+      "experience_years": 8,
+      "rating": "4.9"
+    },
+    {
+      "id": 5,
+      "user_id": null,
+      "name": "Dr. Vikram Malhotra",
+      "department_id": 5,
+      "department": "Neurology",
+      "specialization": "Senior Neurologist",
+      "room": "302",
+      "status": "Available",
+      "experience_years": 16,
+      "rating": "4.9"
+    }
+  ],
+  "patients": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "name": "Aarav Sharma",
+      "email": "aarav@example.com",
+      "phone": "9876543210",
+      "date_of_birth": "1996-05-14",
+      "gender": "Male",
+      "blood_group": "O+",
+      "address": "Flat 402, Skyline Towers, Mumbai",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "name": "Diya Patel",
+      "email": "diya@example.com",
+      "phone": "9876543211",
+      "date_of_birth": "1998-09-22",
+      "gender": "Female",
+      "blood_group": "A+",
+      "address": "Plot 12, Sunrise Residency, Pune",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 3,
+      "user_id": 3,
+      "name": "Rajesh Kumar",
+      "email": "rajesh@example.com",
+      "phone": "9876543212",
+      "date_of_birth": "1984-11-03",
+      "gender": "Male",
+      "blood_group": "B+",
+      "address": "House 88, Green Park, Bangalore",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 4,
+      "user_id": 4,
+      "name": "Sunita Verma",
+      "email": "sunita@example.com",
+      "phone": "9876543213",
+      "date_of_birth": "1991-03-30",
+      "gender": "Female",
+      "blood_group": "AB+",
+      "address": "Tower B, Galaxy Apts, Delhi",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    }
+  ],
+  "appointments": [
+    {
+      "id": 1,
+      "patient_id": 4,
+      "doctor_id": 1,
+      "department_id": 1,
+      "appointment_date": "2026-10-22",
+      "appointment_time": "09:45:00",
+      "token_number": "CARD-101",
+      "priority": "emergency",
+      "status": "confirmed",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 2,
+      "patient_id": 1,
+      "doctor_id": 1,
+      "department_id": 1,
+      "appointment_date": "2026-10-22",
+      "appointment_time": "10:00:00",
+      "token_number": "CARD-102",
+      "priority": "normal",
+      "status": "waiting",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 3,
+      "patient_id": 2,
+      "doctor_id": 2,
+      "department_id": 2,
+      "appointment_date": "2026-10-22",
+      "appointment_time": "10:15:00",
+      "token_number": "GEN-103",
+      "priority": "normal",
+      "status": "waiting",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 4,
+      "patient_id": 3,
+      "doctor_id": 3,
+      "department_id": 3,
+      "appointment_date": "2026-10-22",
+      "appointment_time": "10:30:00",
+      "token_number": "ORTHO-104",
+      "priority": "priority",
+      "status": "waiting",
+      "created_at": "2026-10-22T14:39:32.586Z"
+    }
+  ],
+  "queue": [
+    {
+      "id": 1,
+      "appointment_id": 1,
+      "token_number": "CARD-101",
+      "priority": "emergency",
+      "status": "in_consultation",
+      "patients_ahead": 0,
+      "estimated_wait_time": 0,
+      "called_at": "2026-10-22T14:34:32.586Z",
+      "completed_at": null,
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 2,
+      "appointment_id": 2,
+      "token_number": "CARD-102",
+      "priority": "normal",
+      "status": "waiting",
+      "patients_ahead": 1,
+      "estimated_wait_time": 15,
+      "called_at": null,
+      "completed_at": null,
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 3,
+      "appointment_id": 3,
+      "token_number": "GEN-103",
+      "priority": "normal",
+      "status": "waiting",
+      "patients_ahead": 2,
+      "estimated_wait_time": 30,
+      "called_at": null,
+      "completed_at": null,
+      "created_at": "2026-10-22T14:39:32.586Z"
+    },
+    {
+      "id": 4,
+      "appointment_id": 4,
+      "token_number": "ORTHO-104",
+      "priority": "priority",
+      "status": "waiting",
+      "patients_ahead": 1,
+      "estimated_wait_time": 15,
+      "called_at": null,
+      "completed_at": null,
+      "created_at": "2026-10-22T14:39:32.586Z"
+    }
+  ],
+  "resources": [
+    {
+      "id": 1,
+      "resource_type": "General Beds",
+      "total": 50,
+      "occupied": 32,
+      "available": 18
+    },
+    {
+      "id": 2,
+      "resource_type": "ICU Beds",
+      "total": 10,
+      "occupied": 7,
+      "available": 3
+    },
+    {
+      "id": 3,
+      "resource_type": "Emergency Rooms",
+      "total": 5,
+      "occupied": 3,
+      "available": 2
+    },
+    {
+      "id": 4,
+      "resource_type": "Ventilators",
+      "total": 8,
+      "occupied": 5,
+      "available": 3
+    }
+  ],
+  "emergencies": [
+    {
+      "id": "emg-1",
+      "patientName": "Trauma Case #102",
+      "department": "Emergency Trauma",
+      "ambulanceEta": 6,
+      "icuRequired": true,
+      "bedRequired": true,
+      "condition": "Severe head injury & multiple fractures",
+      "priority": "emergency",
+      "status": "incoming",
+      "createdAt": "2026-10-22T14:39:32.586Z"
+    }
+  ]
+}

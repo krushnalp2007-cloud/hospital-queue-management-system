@@ -1,0 +1,988 @@
+/* =========================================================
+   MEDIQUEUE - ENHANCED MOBILE PATIENT INTERFACE STYLES
+   Designed specifically for mobile ergonomics and modern UX
+   ========================================================= */
+
+:root {
+  --mobile-primary: #2563eb;
+  --mobile-primary-dark: #1d4ed8;
+  --mobile-primary-light: #eff6ff;
+  --mobile-accent: #06b6d4;
+  --mobile-success: #10b981;
+  --mobile-warning: #f59e0b;
+  --mobile-danger: #ef4444;
+  --mobile-dark: #0f172a;
+  --mobile-gray-900: #1e293b;
+  --mobile-gray-700: #334155;
+  --mobile-gray-500: #64748b;
+  --mobile-gray-400: #94a3b8;
+  --mobile-gray-200: #e2e8f0;
+  --mobile-gray-100: #f1f5f9;
+  --mobile-gray-50: #f8fafc;
+  --mobile-radius-sm: 8px;
+  --mobile-radius: 14px;
+  --mobile-radius-lg: 22px;
+  --mobile-radius-full: 9999px;
+  --mobile-shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05);
+  --mobile-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --mobile-shadow-lg: 0 20px 35px -10px rgba(15, 23, 42, 0.15);
+}
+
+/* Outer layout wrapper */
+.mobile-view-wrapper {
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 20px 10px 40px;
+  box-sizing: border-box;
+}
+
+/* Top control toolbar (desktop mode) */
+.mobile-top-toolbar {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: var(--mobile-radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.mobile-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseBeacon 2s infinite;
+}
+
+@keyframes pulseBeacon {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.mobile-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: var(--mobile-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.toolbar-btn.staff-portal-btn {
+  background: #2563eb;
+  color: #fff;
+}
+
+.toolbar-btn.staff-portal-btn:hover {
+  background: #1d4ed8;
+}
+
+/* Smartphone Device Mockup Chassis */
+.smartphone-chassis {
+  width: 100%;
+  max-width: 410px;
+  min-height: 844px;
+  max-height: 890px;
+  background: #ffffff;
+  border-radius: 46px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7),
+              0 0 0 12px #1e293b,
+              0 0 0 14px rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Full View Mode toggle override */
+.smartphone-chassis.full-view-mode {
+  max-width: 600px;
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive: on actual mobile viewports, remove the desktop phone chassis frame */
+@media (max-width: 500px) {
+  .mobile-view-wrapper {
+    padding: 0;
+    background: #ffffff;
+  }
+  .mobile-top-toolbar {
+    border-radius: 0;
+    max-width: 100%;
+    margin-bottom: 0;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    background: #0f172a;
+  }
+  .smartphone-chassis {
+    max-width: 100%;
+    min-height: 100vh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+  }
+}
+
+/* Mobile Status Bar (Notch + Time + Icons) */
+.mobile-status-bar {
+  height: 44px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  background: transparent;
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.status-bar-notch {
+  width: 110px;
+  height: 24px;
+  background: #0f172a;
+  border-radius: 14px;
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.15);
+}
+
+.status-bar-notch-camera {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-bar-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* Mobile Screen Content Scrollable Area */
+.mobile-screen-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-screen-content::-webkit-scrollbar {
+  width: 4px;
+}
+.mobile-screen-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Home Indicator Bar (iPhone gesture bar) */
+.mobile-home-indicator {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  padding-bottom: 4px;
+}
+
+.home-bar {
+  width: 130px;
+  height: 4.5px;
+  background: #94a3b8;
+  border-radius: 3px;
+}
+
+/* =========================================================
+   PATIENT LOGIN SCREEN (MOBILE FIRST)
+   ========================================================= */
+
+.mobile-login-container {
+  padding: 16px 22px 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* App Branding Header */
+.mobile-login-header {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 22px;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #ffffff;
+  font-size: 32px;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+  margin-bottom: 12px;
+  animation: floatBadge 3s ease-in-out infinite;
+}
+
+@keyframes floatBadge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.mobile-login-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.mobile-login-header p {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: #64748b;
+}
+
+/* Dual Mode Tab Switcher */
+.login-tabs-pill {
+  display: flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: var(--mobile-radius);
+  margin-bottom: 20px;
+}
+
+.tab-pill-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tab-pill-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Form Groups & Inputs */
+.mobile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mobile-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-input-group label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.mobile-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 42px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: var(--mobile-radius);
+  font-size: 14.5px;
+  color: #0f172a;
+  background: #ffffff;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.mobile-input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Phone input group with prefix */
+.phone-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.country-code-pill {
+  height: 48px;
+  padding: 0 12px;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: var(--mobile-radius);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.phone-input-wrapper .mobile-input {
+  padding-left: 14px;
+}
+
+/* Password eye button */
+.password-eye-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+}
+
+/* 6-Digit OTP Box Grid */
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.otp-boxes-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.otp-digit-box {
+  flex: 1;
+  height: 52px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-digit-box:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  transform: translateY(-2px);
+}
+
+.otp-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.otp-resend-btn {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.otp-resend-btn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.auto-fill-chip {
+  align-self: flex-start;
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  border-radius: var(--mobile-radius-full);
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auto-fill-chip:hover {
+  background: #bae6fd;
+}
+
+/* Primary Mobile Action Button */
+.mobile-primary-btn {
+  height: 50px;
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--mobile-radius);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+}
+
+.mobile-primary-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+}
+
+.mobile-primary-btn:active {
+  transform: translateY(1px);
+}
+
+.mobile-primary-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Face ID / Biometrics Simulation Button */
+.biometric-row {
+  margin-top: 14px;
+}
+
+.biometric-btn {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--mobile-radius);
+  color: #334155;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.biometric-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Quick Demo Patient Login Section */
+.demo-patients-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.demo-patients-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.demo-patients-title span {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+}
+
+.demo-chip-badge {
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.demo-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-patient-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demo-patient-card:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateX(3px);
+}
+
+.demo-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-card-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.demo-card-details strong {
+  display: block;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.demo-card-details small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.demo-token-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Bottom Registration & Switcher Links */
+.mobile-login-footer {
+  margin-top: 22px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.text-link-btn {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+}
+
+.text-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* Alert & Toast Banners */
+.mobile-alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  animation: shakeAlert 0.4s ease;
+}
+
+@keyframes shakeAlert {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.mobile-alert.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.mobile-alert.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================================================
+   BOTTOM MOBILE NAVIGATION BAR
+   ========================================================= */
+
+.mobile-nav-bar {
+  height: 64px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  z-index: 40;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.mobile-nav-item.active {
+  color: #2563eb;
+}
+
+.mobile-nav-item.active .nav-icon {
+  transform: translateY(-2px);
+  color: #2563eb;
+}
+
+.nav-icon {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.nav-live-dot {
+  position: absolute;
+  top: 4px;
+  right: 18px;
+  width: 7px;
+  height: 7px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulseBeacon 1.5s infinite;
+}
+
+/* =========================================================
+   PATIENT MOBILE DASHBOARD & QUEUE CARDS
+   ========================================================= */
+
+.patient-mobile-dashboard {
+  padding: 16px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard-user-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.greeting-text h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.greeting-text p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.greeting-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* Hero Live Token Card */
+.mobile-token-hero-card {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  border-radius: var(--mobile-radius-lg);
+  padding: 20px;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+}
+
+.token-card-glow {
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.token-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #93c5fd;
+  margin-bottom: 12px;
+}
+
+.token-live-pill {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 3px 8px;
+  border-radius: var(--mobile-radius-full);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.token-hero-number {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+.token-hero-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.meta-box span {
+  display: block;
+  font-size: 11px;
+  color: #bfdbfe;
+}
+
+.meta-box strong {
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.track-queue-btn {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  color: #1e3a8a;
+  border: none;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.track-queue-btn:hover {
+  background: #eff6ff;
+}
+
+/* Quick Action 2x2 Grid */
+.mobile-quick-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quick-action-card {
+  background: #ffffff;
+  padding: 16px 14px;
+  border-radius: var(--mobile-radius);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-action-card:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: var(--mobile-shadow-sm);
+}
+
+.action-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.action-card-icon.blue { background: #dbeafe; color: #2563eb; }
+.action-card-icon.green { background: #dcfce7; color: #16a34a; }
+.action-card-icon.orange { background: #ffedd5; color: #ea580c; }
+.action-card-icon.red { background: #fee2e2; color: #dc2626; }
+
+.quick-action-card strong {
+  font-size: 13.5px;
+  color: #0f172a;
+}
+
+.quick-action-card span {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+/* Emergency Floating Help / SOS */
+.mobile-sos-banner {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: var(--mobile-radius);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sos-content strong {
+  display: block;
+  font-size: 13px;
+  color: #9f1239;
+}
+
+.sos-content span {
+  font-size: 11px;
+  color: #be123c;
+}
+
+.sos-call-btn {
+  background: #e11d48;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -1,448 +1,188 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Doctors.css";
 import Sidebar from "./Sidebar";
 
-function Doctors({
-  activePage,
-  onNavigate,
-}) {
+const API_BASE = "/api";
+
+function Doctors({ activePage, onNavigate, onOpenPatientMobile }) {
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("All");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const doctors = [
-    {
-      id: 1,
-      name: "Dr. Amit Sharma",
-      initials: "AS",
-      department: "Cardiology",
-      room: "101",
-      specialization: "Cardiologist",
-      status: "Available",
-      experience: "12 years",
-      patients: 8,
-    },
-    {
-      id: 2,
-      name: "Dr. Priya Deshmukh",
-      initials: "PD",
-      department: "General Medicine",
-      room: "102",
-      specialization: "General Physician",
-      status: "Available",
-      experience: "9 years",
-      patients: 12,
-    },
-    {
-      id: 3,
-      name: "Dr. Rahul Patil",
-      initials: "RP",
-      department: "Orthopedics",
-      room: "103",
-      specialization: "Orthopedic Specialist",
-      status: "Busy",
-      experience: "15 years",
-      patients: 6,
-    },
-    {
-      id: 4,
-      name: "Dr. Sneha Kulkarni",
-      initials: "SK",
-      department: "Dermatology",
-      room: "104",
-      specialization: "Dermatologist",
-      status: "Available",
-      experience: "7 years",
-      patients: 5,
-    },
-    {
-      id: 5,
-      name: "Dr. Rajesh Joshi",
-      initials: "RJ",
-      department: "Neurology",
-      room: "105",
-      specialization: "Neurologist",
-      status: "On Break",
-      experience: "18 years",
-      patients: 4,
-    },
-    {
-      id: 6,
-      name: "Dr. Neha More",
-      initials: "NM",
-      department: "Pediatrics",
-      room: "106",
-      specialization: "Pediatrician",
-      status: "Available",
-      experience: "10 years",
-      patients: 9,
-    },
-  ];
-
-  const departments = [
-    ...new Set(
-      doctors.map((doctor) => doctor.department)
-    ),
-  ];
-
-  const filteredDoctors = doctors.filter(
-    (doctor) => {
-      const searchValue = search.toLowerCase();
-
-      const matchesSearch =
-        doctor.name
-          .toLowerCase()
-          .includes(searchValue) ||
-        doctor.department
-          .toLowerCase()
-          .includes(searchValue) ||
-        doctor.specialization
-          .toLowerCase()
-          .includes(searchValue);
-
-      const matchesDepartment =
-        department === "All" ||
-        doctor.department === department;
-
-      return (
-        matchesSearch &&
-        matchesDepartment
-      );
+  const fetchDoctors = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/doctors`);
+      const data = await response.json();
+      setDoctors(data.doctors || []);
+    } catch (error) {
+      console.warn("Doctors fetch error:", error);
+    } finally {
+      setLoading(false);
     }
-  );
+  };
 
-  const availableDoctors = doctors.filter(
-    (doctor) =>
-      doctor.status === "Available"
-  ).length;
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
-  const busyDoctors = doctors.filter(
-    (doctor) =>
-      doctor.status === "Busy"
-  ).length;
+  const handleStatusChange = async (docId, newStatus) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/doctors/${docId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        setDoctors((prev) =>
+          prev.map((d) => (d.id === docId ? { ...d, status: newStatus } : d))
+        );
+        if (selectedDoctor && selectedDoctor.id === docId) {
+          setSelectedDoctor((prev) => ({ ...prev, status: newStatus }));
+        }
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+    }
+  };
+
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesSearch =
+      doctor.name.toLowerCase().includes(search.toLowerCase()) ||
+      (doctor.specialization || "").toLowerCase().includes(search.toLowerCase());
+    const matchesDepartment =
+      department === "All" || doctor.department === department;
+    return matchesSearch && matchesDepartment;
+  });
 
   return (
     <div className="doctors-page">
       <Sidebar
-        activePage={activePage}
+        activePage={activePage || "doctors"}
         onNavigate={onNavigate}
+        onOpenPatientMobile={onOpenPatientMobile}
       />
 
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="welcome-text">
-              Hospital Management
-            </p>
-
-            <h1>Doctors</h1>
+            <p className="welcome-text">Staff & Duty Roster</p>
+            <h1>Doctor Management</h1>
           </div>
 
-          <div className="profile">
-            <div className="notification">
-              🔔
-            </div>
-
-            <div className="profile-avatar">
-              HS
-            </div>
-
-            <div className="profile-info">
-              <strong>
-                Hospital Staff
-              </strong>
-
-              <span>
-                Reception Desk
-              </span>
-            </div>
+          <div className="topbar-right">
+            <button
+              type="button"
+              className="refresh-button"
+              onClick={fetchDoctors}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              🔄 Refresh Doctors
+            </button>
+            <div className="topbar-avatar">⚕️</div>
           </div>
         </header>
 
-        <section className="queue-summary">
-          <div className="queue-summary-card">
-            <span>Total Doctors</span>
-            <strong>
-              {doctors.length}
-            </strong>
-          </div>
+        {/* Filter Controls */}
+        <div className="doctor-controls">
+          <input
+            type="text"
+            placeholder="Search by doctor or specialization..."
+            className="search-input"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-          <div className="queue-summary-card">
-            <span>Available</span>
-            <strong>
-              {availableDoctors}
-            </strong>
-          </div>
-
-          <div className="queue-summary-card">
-            <span>Busy</span>
-            <strong>
-              {busyDoctors}
-            </strong>
-          </div>
-
-          <div className="queue-summary-card">
-            <span>Departments</span>
-            <strong>
-              {departments.length}
-            </strong>
-          </div>
-        </section>
-
-        <section className="card doctors-card">
-          <div className="waiting-header">
-            <div>
-              <p className="section-label">
-                MEDICAL STAFF
-              </p>
-
-              <h2>Doctor List</h2>
-            </div>
-
-            <div className="queue-controls">
-              <input
-                type="text"
-                placeholder="Search doctor..."
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-              />
-
-              <select
-                value={department}
-                onChange={(event) =>
-                  setDepartment(
-                    event.target.value
-                  )
-                }
-              >
-                <option value="All">
-                  All Departments
-                </option>
-
-                {departments.map(
-                  (item) => (
-                    <option
-                      value={item}
-                      key={item}
-                    >
-                      {item}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-          </div>
-
-          <div className="queue-table">
-            <div className="queue-table-row queue-table-heading">
-              <span>Doctor</span>
-              <span>Department</span>
-              <span>Specialization</span>
-              <span>Room</span>
-              <span>Status</span>
-              <span>Patients</span>
-              <span>Action</span>
-            </div>
-
-            {filteredDoctors.map(
-              (doctor) => (
-                <div
-                  className="queue-table-row"
-                  key={doctor.id}
-                >
-                  <div className="queue-patient-cell">
-                    <div className="small-avatar">
-                      {doctor.initials}
-                    </div>
-
-                    <strong>
-                      {doctor.name}
-                    </strong>
-                  </div>
-
-                  <span>
-                    {doctor.department}
-                  </span>
-
-                  <span>
-                    {doctor.specialization}
-                  </span>
-
-                  <span>
-                    {doctor.room}
-                  </span>
-
-                  <span>
-                    <span
-                      className={`waiting-badge ${
-                        doctor.status ===
-                        "Available"
-                          ? "doctor-available"
-                          : doctor.status ===
-                            "Busy"
-                          ? "doctor-busy"
-                          : "doctor-break"
-                      }`}
-                    >
-                      {doctor.status}
-                    </span>
-                  </span>
-
-                  <span>
-                    {doctor.patients}
-                  </span>
-
-                  <button
-                    className="call-button"
-                    onClick={() =>
-                      setSelectedDoctor(
-                        doctor
-                      )
-                    }
-                  >
-                    View
-                  </button>
-                </div>
-              )
-            )}
-
-            {filteredDoctors.length ===
-              0 && (
-              <div className="queue-empty">
-                No doctors found.
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-
-      {selectedDoctor && (
-        <div
-          className="modal-overlay"
-          onClick={() =>
-            setSelectedDoctor(null)
-          }
-        >
-          <div
-            className="doctor-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-            <div className="modal-header">
-              <div>
-                <p className="section-label">
-                  DOCTOR DETAILS
-                </p>
-
-                <h2>
-                  {selectedDoctor.name}
-                </h2>
-              </div>
-
+          <div className="department-filter">
+            {["All", "Cardiology", "General Medicine", "Orthopedics", "Pediatrics", "Neurology"].map((dept) => (
               <button
-                className="modal-close"
-                onClick={() =>
-                  setSelectedDoctor(null)
-                }
+                key={dept}
+                className={`filter-tab ${department === dept ? "active" : ""}`}
+                onClick={() => setDepartment(dept)}
               >
-                ×
+                {dept}
               </button>
-            </div>
-
-            <div className="doctor-modal-profile">
-              <div className="doctor-large-avatar">
-                {selectedDoctor.initials}
-              </div>
-
-              <div>
-                <h3>
-                  {selectedDoctor.name}
-                </h3>
-
-                <p>
-                  {
-                    selectedDoctor.specialization
-                  }
-                </p>
-              </div>
-            </div>
-
-            <div className="doctor-details-grid">
-              <div>
-                <span>
-                  Department
-                </span>
-
-                <strong>
-                  {
-                    selectedDoctor.department
-                  }
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Room Number
-                </span>
-
-                <strong>
-                  {selectedDoctor.room}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Experience
-                </span>
-
-                <strong>
-                  {
-                    selectedDoctor.experience
-                  }
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Current Patients
-                </span>
-
-                <strong>
-                  {
-                    selectedDoctor.patients
-                  }
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Current Status
-                </span>
-
-                <strong>
-                  {
-                    selectedDoctor.status
-                  }
-                </strong>
-              </div>
-            </div>
-
-            <button
-              className="secondary-button modal-done-button"
-              onClick={() =>
-                setSelectedDoctor(null)
-              }
-            >
-              Close
-            </button>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Doctor Grid */}
+        <div className="doctors-grid">
+          {filteredDoctors.map((doc) => (
+            <div
+              key={doc.id}
+              className={`doctor-card ${selectedDoctor?.id === doc.id ? "selected" : ""}`}
+              onClick={() => setSelectedDoctor(doc)}
+            >
+              <div className="doctor-card-top">
+                <div className="doctor-avatar">
+                  {doc.name.replace("Dr. ", "").split(" ").map((n) => n[0]).join("")}
+                </div>
+                <div>
+                  <h3>{doc.name}</h3>
+                  <p className="specialization">{doc.specialization || doc.department}</p>
+                </div>
+              </div>
+
+              <div className="doctor-meta">
+                <div>
+                  <span>Department</span>
+                  <strong>{doc.department}</strong>
+                </div>
+                <div>
+                  <span>OPD Room</span>
+                  <strong>Room {doc.room}</strong>
+                </div>
+                <div>
+                  <span>Experience</span>
+                  <strong>{doc.experience_years || 8} Years</strong>
+                </div>
+              </div>
+
+              <div className="doctor-status-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    background: doc.status === "Available" ? "#dcfce7" : doc.status === "Busy" ? "#fee2e2" : "#fef3c7",
+                    color: doc.status === "Available" ? "#166534" : doc.status === "Busy" ? "#991b1b" : "#b45309",
+                  }}
+                >
+                  ● {doc.status}
+                </span>
+
+                <select
+                  value={doc.status}
+                  onChange={(e) => handleStatusChange(doc.id, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="Available">Available</option>
+                  <option value="Busy">Busy</option>
+                  <option value="On Break">On Break</option>
+                  <option value="Unavailable">Unavailable</option>
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }
